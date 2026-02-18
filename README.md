@@ -72,4 +72,5 @@ After the tests have been executed, you can generate and view the Allure report 
 allure serve allure-results
 ```
 
+
 This command will open the Allure report in your default web browser.
