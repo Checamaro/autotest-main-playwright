@@ -34,13 +34,16 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps
 
-      # 4. Установка Allure CLI
+      # 4. Установка Allure CLI (исправленная версия)
       - name: Install Allure CLI
         run: |
-          wget https://github.com/allure-framework/allure2/releases/download/2.27.4/allure-2.27.4.tgz
-          tar -zxvf allure-2.27.4.tgz
-          sudo mv allure-2.27.4 /opt/allure
+          # Используем актуальную версию Allure 2.32.2
+          wget https://github.com/allure-framework/allure2/releases/download/2.32.2/allure-2.32.2.tgz
+          tar -zxvf allure-2.32.2.tgz
+          sudo mv allure-2.32.2 /opt/allure
           echo "/opt/allure/bin" >> $GITHUB_PATH
+          # Проверяем установку
+          allure --version
 
       # 5. Запуск тестов с выбранным браузером
       - name: Run Playwright tests with pytest
@@ -53,6 +56,7 @@ jobs:
         with:
           name: allure-results-${{ matrix.browser }}
           path: allure-results
+          if-no-files-found: warn
 
   publish-report:
     runs-on: ubuntu-latest
@@ -65,27 +69,50 @@ jobs:
         uses: actions/checkout@v5
 
       # 2. Загружаем результаты тестов из артефактов
-      - name: Download Allure results artifacts
+      - name: Download Allure results artifacts (Chromium)
         uses: actions/download-artifact@v4
         with:
           name: allure-results-chromium
           path: allure-results/chromium
 
-      - name: Download Allure results artifacts
+      - name: Download Allure results artifacts (Firefox)
         uses: actions/download-artifact@v4
         with:
           name: allure-results-firefox
           path: allure-results/firefox
 
-      # 3. Генерация объединенного Allure отчета с историей
+      # 3. Установка Allure CLI для генерации отчета
+      - name: Install Allure CLI
+        run: |
+          wget https://github.com/allure-framework/allure2/releases/download/2.32.2/allure-2.32.2.tgz
+          tar -zxvf allure-2.32.2.tgz
+          sudo mv allure-2.32.2 /opt/allure
+          echo "/opt/allure/bin" >> $GITHUB_PATH
+          allure --version
+
+      # 4. Генерация объединенного Allure отчета с историей
       - name: Generate Allure Report
         run: |
+          # Создаем директорию для истории, если её нет
           mkdir -p allure-history
-          cp -r gh-pages/* allure-history/ 2>/dev/null || true
-          allure generate allure-results -o allure-report --clean
+          
+          # Копируем предыдущий отчет из gh-pages, если существует
+          if [ -d "gh-pages" ]; then
+            cp -r gh-pages/* allure-history/ 2>/dev/null || true
+          fi
+          
+          # Объединяем результаты из разных браузеров
+          mkdir -p allure-results/combined
+          cp -r allure-results/chromium/* allure-results/combined/ 2>/dev/null || true
+          cp -r allure-results/firefox/* allure-results/combined/ 2>/dev/null || true
+          
+          # Генерируем отчет
+          allure generate allure-results/combined -o allure-report --clean
+          
+          # Копируем сгенерированный отчет в историю
           cp -r allure-report/* allure-history/
 
-      # 4. Публикация отчета на GitHub Pages
+      # 5. Публикация отчета на GitHub Pages
       - name: Deploy Allure report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
