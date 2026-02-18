@@ -1,0 +1,1 @@
+[{"uid":"63b3be4ab6ef8ed1","name":"test_playwright_homepage_h1[firefox]","time":{"start":1771416337147,"stop":1771416337665,"duration":518},"status":"passed","severity":"normal"},{"uid":"4355b751a066035","name":"test_playwright_homepage_h1[chromium]","time":{"start":1771416335505,"stop":1771416335932,"duration":427},"status":"passed","severity":"normal"}]
