@@ -75,26 +75,18 @@ jobs:
           fi
           echo "Merged Allure results from all browsers"
 
-      # 4. Получение истории отчётов Allure из ветки gh-pages
-      - name: Get Allure history
-        uses: actions/checkout@v4
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages
-
-      # 5. Генерация отчета Allure с историей (Allure CLI не нужен, action сам всё установит)
-      - name: Generates Allure Report with history
+      # 4. Генерация отчета Allure
+      - name: Generate Allure Report
         uses: simple-elf/allure-report-action@v1.13
         with:
           allure_results: allure-results/combined
-          allure_history: allure-history
-          keep_reports: 20
+          allure_report: allure-report
+          keep_reports: 1  # храним только последний отчет
 
-      # 6. Публикация отчета на GitHub Pages
+      # 5. Публикация отчета на GitHub Pages
       - name: Deploy report to Github Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: allure-history
+          publish_dir: allure-report
